@@ -7,113 +7,103 @@ import (
 	"strconv"
 )
 
+var (
+	table               = [3][3]string{{"1", "2", "3"}, {"4", "5", "6"}, {"7", "8", "9"}}
+	playerSymbol        = [2]string{"X", "O"}
+	cellTab, player int = 0, 0
+)
+
 func Init() {
 	var (
-		morpionTable                = [3][3]string{{"1", "2", "3"}, {"4", "5", "6"}, {"7", "8", "9"}}
-		caseTab, joueur, winner, null int = 0, 1, 0, 0
-		err                     error
+		winner, draw bool = false, false
+		err          error
 	)
 	scanner := bufio.NewScanner(os.Stdin)
 
-	for winner == 0 && null == 0 {
+	for !winner && !draw {
 
-		afficheMorpion(morpionTable)
-		fmt.Printf("Joueur %d entrez un nombre compris entre 1 à 9 : ", joueur)
+		displayTable()
+		fmt.Printf("Player %d enter a number between 1 to 9 : ", player)
 		scanner.Scan()
-		caseTab, err = strconv.Atoi(scanner.Text())
+		cellTab, err = strconv.Atoi(scanner.Text())
 
 		if err != nil {
-			fmt.Printf("Entrez un nombre et non autre chose !\n")
+			fmt.Println("Enter a number and not something else !")
 			continue
 		}
 
-		if (caseTab < 1) || (caseTab > 9) {
-			fmt.Printf("Votre nombre doit être compris entre 1 à 9 !\n")
+		if (cellTab < 1) || (cellTab > 9) {
+			fmt.Println("Your number must be between 1 to 9 !")
 			continue
 		}
 
-		morpionTable = remplirMorpion(caseTab, joueur, morpionTable)
-		winner = checkWinner(morpionTable, joueur)
-		null = checkNull(morpionTable)
-		switch joueur {
-		case 1:
-			joueur = 2
-			break
-		case 2:
-			joueur = 1
-			break
-		}
+		fillTable()
+		winner = checkWinner()
+		draw = checkDraw()
+		player = (player + 1) % 2
 	}
 
 }
 
-func afficheMorpion(morpion [3][3]string) {
-	var afficheTab string
+func displayTable() {
+	var tableDisplay string
 
-	for _, value := range morpion {
+	for _, value := range table {
 		for _, j := range value {
-			afficheTab += " " + j
+			tableDisplay += " " + j
 		}
-		afficheTab += "\n"
+		tableDisplay += "\n"
 	}
-	fmt.Printf(afficheTab)
+	fmt.Printf(tableDisplay)
 }
 
-func remplirMorpion(index int, joueur int, morpion [3][3]string) [3][3]string {
+func fillTable() {
 
-	for index1, tab1 := range morpion {
+	for index1, tab1 := range table {
 		for index2, j := range tab1 {
-			if val, _ := strconv.Atoi(j); val == index {
-				if joueur == 1 {
-					morpion[index1][index2] = "X"
-					break
-				}
-
-				if joueur == 2 {
-					morpion[index1][index2] = "O"
-					break
-				}
+			if val, _ := strconv.Atoi(j); val == cellTab {
+				table[index1][index2] = playerSymbol[player]
+				break // In order not to go through the whole array
 			}
 		}
 	}
-	return morpion
 }
 
-func checkWinner(morpion [3][3]string, joueur int) int {
+func checkWinner() bool {
 
 	for i := 0; i < 3; i++ {
-		if (morpion[i][0] == morpion[i][1]) && (morpion[i][1] == morpion[i][2]) {
-			fmt.Printf("Joueur %d, winner\n", joueur)
-			return 1
+		if (table[i][0] == table[i][1]) && (table[i][1] == table[i][2]) {
+			fmt.Printf("Player %d, winner\n", player)
+			return true
 		}
 
-		if (morpion[0][i] == morpion[1][i]) && (morpion[1][i] == morpion[2][i]) {
-			fmt.Printf("Joueur %d, winner\n", joueur)
-			return 1
+		if (table[0][i] == table[1][i]) && (table[1][i] == table[2][i]) {
+			fmt.Printf("Player %d, winner\n", player)
+			return true
 		}
 	}
 
-	if (morpion[0][0] == morpion[1][1]) && (morpion[1][1] == morpion[2][2]) {
-		fmt.Printf("Joueur %d, winner\n", joueur)
-		return 1
+	if (table[0][0] == table[1][1]) && (table[1][1] == table[2][2]) {
+		fmt.Printf("Player %d, winner\n", player)
+		return true
 	}
 
-	if (morpion[2][0] == morpion[1][1]) && (morpion[1][1] == morpion[0][2]) {
-		fmt.Printf("Joueur %d, winner\n", joueur)
-		return 1
+	if (table[2][0] == table[1][1]) && (table[1][1] == table[0][2]) {
+		fmt.Printf("Player %d, winner\n", player)
+		return true
 	}
-	return 0
+	return false
 }
 
-func checkNull(morpion [3][3]string) int{
-	
-	for _, value := range morpion {
+func checkDraw() bool {
+
+	for _, value := range table {
 		for _, j := range value {
-			if j != "X"  && j != "O" {
-				return 0
+			if j != "X" && j != "O" {
+				return false
 			}
 		}
 	}
-	fmt.Printf("MATCH NULL\n")
-	return 1
+	fmt.Println("Draw")
+	return true
 }
